@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace M68K
-{
-    public class Class1
-    {
-    }
+namespace M68K {
+	class MemoryMapped {
+		
+	}
 }
