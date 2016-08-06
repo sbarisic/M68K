@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace M68K {
 	public class CPU {
+		public MemoryMappedDevice Memory;
+
 		public int[] D;
 		public int[] A;
 		public int PC;

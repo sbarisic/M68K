@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace M68K {
-	class MemoryMapped {
-		
+	public abstract class MemoryMappedDevice {
+		public abstract int Size { get; }
 	}
 }
