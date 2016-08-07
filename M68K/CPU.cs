@@ -3,9 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace M68K {
 	public class CPU {
+		static OpcodeDefinition[] InstructionSet;
+
+		static CPU() {
+			InstructionSet = new OpcodeDefinition[] {
+				new OpcodeDefinition("010011100100????", Opcode.TRAP),
+			};
+		}
+
+		static Opcode MatchOpcode(ushort Instruction) {
+			for (int i = 0; i < InstructionSet.Length; i++)
+				if (InstructionSet[i].Matches(Instruction))
+					return InstructionSet[i].Opcode;
+			return Opcode.ILLEGAL;
+		}
+
 		public MemoryMappedDevice Memory;
 
 		public int[] D;
@@ -41,7 +57,9 @@ namespace M68K {
 		public virtual void Step() {
 			ushort Instr = Memory.Read16(PC);
 
-			Console.WriteLine("{0}\t0x{0:X4}\t{1}", Instr, Ext.ToBinary(Instr));
+			Opcode Opcode = MatchOpcode(Instr);
+			Console.WriteLine("{0}\t0x{0:X4}\t{1}\t{2}", Instr, Ext.ToBinary(Instr), Opcode);
+
 
 			PC += sizeof(ushort);
 		}

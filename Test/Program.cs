@@ -9,15 +9,13 @@ using M68K;
 namespace Test {
 	class Program {
 		static void Main(string[] args) {
-
 			CPU Processor = new CPU();
 			MemoryBus Bus = new MemoryBus();
 			Processor.Memory = Bus;
 
 			Bus.SetDefaultDevice(new RAM(64000));
 			Bus.Attach(0, ROM.FromFile("program.bin"));
-
-
+			
 			while (true)
 				Processor.Step();
 			Console.WriteLine("Done!");
