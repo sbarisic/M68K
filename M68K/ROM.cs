@@ -15,15 +15,19 @@ namespace M68K {
 
 		byte[] Memory;
 
-		public ROM() {
-		}
-
 		public override int Size
 		{
 			get
 			{
 				return Memory.Length;
 			}
+		}
+
+		public ROM() {
+		}
+
+		public override byte Read8(int Address) {
+			return Memory[Address];
 		}
 	}
 }

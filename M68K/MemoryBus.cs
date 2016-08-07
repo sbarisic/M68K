@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace M68K {
 	public class MemoryBus : MemoryMappedDevice {
-		struct BusSlot {
+		public struct BusSlot {
 			public int Start;
 			public int End;
 			public MemoryMappedDevice MemoryDevice;
@@ -20,10 +20,14 @@ namespace M68K {
 			public bool InRange(int Address) {
 				return Address >= Start && Address < End;
 			}
+
+			public int OffsetAddress(int Address) {
+				return Address - Start;
+			}
 		}
 
 		List<BusSlot> MemoryDevices;
-		MemoryMappedDevice DefaultDevice;
+		BusSlot DefaultDevice;
 
 		public MemoryBus() {
 			MemoryDevices = new List<BusSlot>();
@@ -46,14 +50,24 @@ namespace M68K {
 		}
 
 		public virtual void SetDefaultDevice(MemoryMappedDevice Device) {
-			DefaultDevice = Device;
+			DefaultDevice = new BusSlot(0, Device.Size, Device);
 		}
 
-		public virtual MemoryMappedDevice FindDevice(int MemoryLocation) {
+		public virtual BusSlot FindDevice(int MemoryLocation) {
 			foreach (var Dev in MemoryDevices)
 				if (Dev.InRange(MemoryLocation))
-					return Dev.MemoryDevice;
+					return Dev;
 			return DefaultDevice;
+		}
+
+		public override byte Read8(int Address) {
+			BusSlot Dev = FindDevice(Address);
+			return Dev.MemoryDevice.Read8(Dev.OffsetAddress(Address));
+		}
+
+		public override void Write8(int Address, byte Value) {
+			BusSlot Dev = FindDevice(Address);
+			Dev.MemoryDevice.Write8(Dev.OffsetAddress(Address), Value);
 		}
 	}
 }

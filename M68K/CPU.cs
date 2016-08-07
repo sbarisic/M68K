@@ -39,6 +39,11 @@ namespace M68K {
 		}
 
 		public virtual void Step() {
+			ushort Instr = Memory.Read16(PC);
+
+			Console.WriteLine("{0}\t0x{0:X4}\t{1}", Instr, Ext.ToBinary(Instr));
+
+			PC += sizeof(ushort);
 		}
 	}
 }
