@@ -7,31 +7,26 @@ using System.Runtime.CompilerServices;
 
 namespace M68K {
 	public enum Opcode {
-		ILLEGAL_OPCODE,
-		UNIMPLEMENTED,
-
-		ABCD, BTST, LEA, ROL, ADD, CALLM,
-		LINK_WORD, ROR, ADDA, CAS, LSL, ROXL,
-		ADDI, CAS2, LSR, ROXR, ADDQ, CHK,
-		MOVE_LONG, RTD, ADDX, CHK2, MOVEA, RTM,
-		AND, CLR, MOVEfrmCCR, RTR, ANDI, CMP,
-		MOVEtoCCR, RTS, ANDItoCCR, CMPA, MOVEfromSR, SBCD,
-		ASL, CMPI, MOVE16, Scc, ASR, CMPM,
-		MOVEM, SUB, Bcc, CMP2, MOVEP, SUBA,
-		BCHG, DBcc_DBRA, MOVEQ, SUBI, BCLR, DIVS,
-		MULS, SUBQ, BFCHG, DIVSL, MULU, SUBX,
-		BFCLR, DIVU, NBCD, SWAP, BFEXTS, DIVUL,
-		NEG, TAS, BFEXTU, EOR, NEGX, TDIVS,
-		BFFFO, EORI, NOP, TDIVU, BFINS, EORItoCCR,
-		NOT, TRAP, BFSET, EXG, OR, TRAPcc_Tcc,
-		BFTST, EXT, ORI, TRAPV, BKPT, EXTB,
-		ORItoCCR, TST, BRA, ILLEGAL, PACK, UNLK,
-		BSET, JMP, PEA, UNPK, BSR, JSR,
-		ORItoSR,
-		ANDItoSR,
-		LINK_LONG,
-		MOVE_BYTE,
-		MOVE_WORD
+		ILLEGAL_OPCODE, UNIMPLEMENTED,
+		ORItoCCR, ORItoSR, ORI, ANDItoCCR,
+		ANDItoSR, ANDI, SUBI, RTM, CALLM, CMP2,
+		CHK2, EORItoCCR, ADDI, EORItoSR, EORI, CMPI,
+		BTST, BCHG, BCLR, BSET, MOVES, CAS2,
+		CAS, MOVEP, MOVE_BYTE, MOVEA_BYTE, MOVE_LONG, MOVEA_LONG,
+		MOVE_WORD, MOVEA_WORD, MOVEfromSR, MOVEfromCCR, NEGX, CLR,
+		MOVEtoCCR, NEG, NOT, MOVEtoSR, EXT_EXTB, LINK_LONG,
+		NBCD, SWAP, BKPT, PEA, BGND, ILLEGAL,
+		TAS, TST, MULU_LONG, MULS_LONG, DIVU_DIVUL_LONG, DIVS_DIVSL_LONG,
+		TRAP, LINK_WORD, UNLK, MOVE_USP, RESET, NOP,
+		STOP, RTE, RTD, RTS, TRAPV, RTR,
+		MOVEC, JSR, JMP, MOVEM, LEA, CHK,
+		ADDQ, SUBQ, DBcc, TRAPcc, Scc, BRA,
+		BSR, Bcc, MOVEQ, DIVU_DIVUL_WORD, SBCD, PACK,
+		UNPK, DIVS_DIVSL_WORD, OR, SUBX, SUB_SUBA, CMPM,
+		CMP_CMPA_EOR, MULU_WORD, ABCD, MULS_WORD, EXG, AND,
+		ADDX, ADD_ADDA, ASL_ASR_MEM_SHIFT, LSL_LSR_MEM_SHIFT, ROXL_ROXR_MEM_ROTATE, ROL_ROR_MEM_ROTATE,
+		BFTST, BFEXTU, BFCHG, BFEXTS, BFCLR, BFFFO,
+		BFSET, BFINS, ASL_ASR_REG_SHIFT, LSL_LSR_REG_SHIFT, ROXL_ROXR_REG_ROTATE, ROL_ROR_REG_ROTATE,
 	}
 
 	public class OpcodeDefinition16 {
@@ -42,6 +37,7 @@ namespace M68K {
 		public Opcode Opcode;
 		public byte LowerMask, HigherMask, LowerPattern, HigherPattern;
 		public int Sizeof;
+		public string Pattern;
 
 		public OpcodeDefinition16(string Pattern, Opcode Opcode, int Sizeof) {
 			string LowerPatternString = Pattern.Substring(8);
@@ -51,6 +47,7 @@ namespace M68K {
 			Ext.GenerateMaskPattern(HigherPatternString, out HigherMask, out HigherPattern);
 			this.Opcode = Opcode;
 			this.Sizeof = Sizeof;
+			this.Pattern = Pattern;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -68,6 +65,10 @@ namespace M68K {
 
 		public static OpcodeDefinition32 Create(string Higher, Opcode Opcode, int Sizeof = 2) {
 			return Create(Higher, "????????????????", Opcode, Sizeof);
+		}
+
+		public static OpcodeDefinition32 Create(Opcode Opcode, int Sizeof = 2) {
+			return Create("????????????????", Opcode, Sizeof);
 		}
 
 		public OpcodeDefinition16 Lower, Higher;
