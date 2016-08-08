@@ -55,6 +55,19 @@ namespace M68K {
 			return (byte)((Val >> 8) & 0xFF);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ulong GetBits(this ulong Num, int EndBit, int StartBit) {
+			ulong Mask = 0;
+			for (int i = StartBit; i <= EndBit; i++)
+				Mask |= (0x1ul << i);
+			return (Num & Mask) >> StartBit;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ushort GetBits(this ushort Num, int EndBit, int StartBit) {
+			return (ushort)((ulong)Num).GetBits(EndBit, StartBit);
+		}
+
 		public static string ToBinary<T>(T Num) where T : struct {
 			int Bits = Marshal.SizeOf<T>() * 8;
 			string StringBits = "";
@@ -68,7 +81,7 @@ namespace M68K {
 		public static T FromBinary<T>(string Binary) where T : struct {
 			ulong Num = 0;
 
-			for (int i = 0; i < Binary.Length; i++) 
+			for (int i = 0; i < Binary.Length; i++)
 				Num = Num.SetBit(i, Binary.Substring(Binary.Length - i - 1, 1) == "1");
 
 			return (T)Convert.ChangeType(Num, typeof(T));

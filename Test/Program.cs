@@ -15,9 +15,14 @@ namespace Test {
 
 			Bus.SetDefaultDevice(new RAM(64000));
 			Bus.Attach(0, ROM.FromFile("program.bin"));
-			
-			while (true)
+
+			/*while (true)
+				Processor.Step();*/
+
+			for (int i = 0; i < 32; i++) {
 				Processor.Step();
+			}
+
 			Console.WriteLine("Done!");
 			Console.ReadLine();
 		}
