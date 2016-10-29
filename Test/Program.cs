@@ -19,7 +19,7 @@ namespace Test {
 			Bus.SetDefaultDevice(new RAM(64000));
 			Bus.Attach(0, ROM.FromFile("program.bin"));
 			Processor.Memory = Bus;
-			
+
 			while (true) {
 				Console.ForegroundColor = ConsoleColor.White;
 				Console.Write("(M68K)>> ");
@@ -38,8 +38,10 @@ namespace Test {
 		static void Exec(string Cmd, string[] CmdSplit) {
 			if (CmdSplit.Length == 1 && CmdSplit[0] == "q")
 				Environment.Exit(0);
-			else if (CmdSplit.Length == 2 && CmdSplit[0] == "step") {
-				int Cnt = int.Parse(CmdSplit[1]);
+			else if ((CmdSplit.Length == 2 && CmdSplit[0] == "step") || (CmdSplit.Length == 1 && CmdSplit[0] == "s")) {
+				int Cnt = 1;
+				if (CmdSplit[0] != "s")
+					Cnt = int.Parse(CmdSplit[1]);
 				for (int i = 0; i < Cnt; i++)
 					Processor.Step();
 			} else if (CmdSplit.Length == 2 && CmdSplit[0] == "regs") {
@@ -81,6 +83,17 @@ namespace Test {
 					Console.ResetColor();
 					Console.WriteLine("0x{0:X8}", Processor.PC);
 				}
+			} else if (CmdSplit.Length == 3 && CmdSplit[0] == "mem") {
+				int Location = ParseNum(CmdSplit[1]);
+				int Len = ParseNum(CmdSplit[2]);
+
+				for (int i = 0; i < Len; i++) {
+					byte[] Vals = new byte[16];
+					for (int j = 0; j < Vals.Length; j++)
+						Vals[j] = Processor.Memory.Read8(Location + i++);
+					MemoryDumpLine(Location, Vals);
+					Location += Vals.Length;
+				}
 			} else
 				Console.WriteLine("Unknown command '{0}'", Cmd);
 			Console.WriteLine();
@@ -91,6 +104,34 @@ namespace Test {
 			if (Str.Length < Len)
 				Str += new string(' ', Len - Str.Length);
 			return Str;
+		}
+
+		static int ParseNum(string Num) {
+			if (Num.StartsWith("0x"))
+				return Convert.ToInt32(Num.Substring(2), 16);
+			return int.Parse(Num);
+		}
+
+		static void MemoryDumpLine(int StartAddress, params byte[] Values) {
+			Console.ForegroundColor = ConsoleColor.White;
+			Console.Write(FmtToLen("0x{0:X4}:", 12, StartAddress));
+			Console.ResetColor();
+
+			for (int i = 0; i < Values.Length; i++) {
+				Console.Write("{0:X2} ", Values[i]);
+				if (i == 7)
+					Console.Write(" ");
+			}
+
+			Console.Write("    |");
+			for (int i = 0; i < Values.Length; i++) {
+				char C = (char)Values[i];
+				if (char.IsControl(C))
+					Console.Write(".");
+				else
+					Console.Write(C);
+			}
+			Console.WriteLine("|");
 		}
 	}
 }

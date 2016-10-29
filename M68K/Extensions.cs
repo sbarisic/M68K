@@ -56,6 +56,16 @@ namespace M68K {
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ushort LowerShort(this uint Val) {
+			return (ushort)(Val & 0xFFFF);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ushort HigherShort(this uint Val) {
+			return (ushort)((Val >> 16) & 0xFFFF);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static ulong GetBits(this ulong Num, int EndBit, int StartBit) {
 			ulong Mask = 0;
 			for (int i = StartBit; i <= EndBit; i++)
@@ -66,6 +76,19 @@ namespace M68K {
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static ushort GetBits(this ushort Num, int EndBit, int StartBit) {
 			return (ushort)((ulong)Num).GetBits(EndBit, StartBit);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsNegative(this OpSize Size, ulong Num) {
+			switch (Size) {
+				case OpSize._8:
+					return ((sbyte)Num) < 0;
+				case OpSize._16:
+					return ((short)Num) < 0;
+				case OpSize._32:
+					return ((int)Num) < 0;
+			}
+			return false;
 		}
 
 		public static string ToBinary<T>(T Num) where T : struct {

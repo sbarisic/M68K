@@ -8,7 +8,7 @@ using OpcodeDef = M68K.OpcodeDefinition32;
 
 namespace M68K {
 	public partial class CPU {
-		int CurrentInstructionLength;
+		int CurrentInstructionLength, AddressingOffset;
 		Queue<int> TrapQueue = new Queue<int>();
 
 		public MemoryMappedDevice Memory;
@@ -47,26 +47,70 @@ namespace M68K {
 				// 000/001 Dn, An
 				case 0:
 				case 1:
-					if (Set)
-						DA[Reg] = (int)Value;
-					else
+					if (Set) {
+						switch (Size) {
+							case OpSize._8:
+								DA[Reg] = (DA[Reg] & ~0xFF) + (int)(Value & 0xFF);
+								break;
+							case OpSize._16:
+								DA[Reg] = (DA[Reg] & ~0xFFFF) + (int)(Value & 0xFFFF);
+								break;
+							case OpSize._32:
+								DA[Reg] = (int)(DA[Reg] & ~0xFFFFFFFF) + (int)(Value & 0xFFFFFFFF);
+								break;
+								;
+						}
+					} else
 						return (ulong)DA[Reg];
 					break;
 
-				// 010
+				// 010 (An)
 				case 2:
+					if (Set)
+						Memory.Write(Size, DA[Reg], Value);
+					else
+						return Memory.Read(Size, DA[Reg]);
 					break;
 
-				// 011
-				case 3:
-					break;
+				// 011 (An)+
+				case 3: {
+						ulong Ret = 0;
 
-				// 100
-				case 4:
-					break;
+						if (Set)
+							Memory.Write(Size, DA[Reg], Value);
+						else
+							Ret = Memory.Read(Size, DA[Reg]);
 
-				// 101
+						int Inc = (int)Size;
+						if (Inc < 2 && Reg == 15) // If not even and register A7
+							Inc = 2;
+
+						DA[Reg] += Inc; // TOOD: implement after instruction executes
+						return Ret;
+					}
+
+				// 100 -(An)
+				case 4: {
+						int Inc = (int)Size;
+						if (Inc < 2 && Reg == 15) // If not even and register A7
+							Inc = 2;
+
+						DA[Reg] -= Inc; // TODO: implement before instruction executes
+
+						if (Set)
+							Memory.Write(Size, DA[Reg], Value);
+						else
+							return Memory.Read(Size, DA[Reg]);
+						break;
+					}
+
+				// 101 (d16, An)
 				case 5:
+					AddressingOffset += 2;
+					if (Set)
+						Memory.Write(Size, DA[Reg] + (short)Memory.Read16(PC + AddressingOffset), Value);
+					else
+						return Memory.Read(Size, DA[Reg] + (short)Memory.Read16(PC + AddressingOffset));
 					break;
 
 				// 110
@@ -76,13 +120,29 @@ namespace M68K {
 				// 111
 				case 7: {
 						switch (Data) {
-							// 000
-							case 0:
-								break;
+							// 000 addr16
+							case 0: {
+									AddressingOffset += 2;
+									int Addr = Memory.Read16(PC + AddressingOffset);
 
-							// 001
-							case 1:
-								break;
+									if (Set)
+										Memory.Write(Size, Addr, Value);
+									else
+										return Memory.Read(Size, Addr);
+									break;
+								}
+
+							// 001 addr32
+							case 1: {
+									AddressingOffset += 2;
+									int Addr = (int)Memory.Read32(PC + AddressingOffset);
+
+									if (Set)
+										Memory.Write(Size, Addr, Value);
+									else
+										return Memory.Read(Size, Addr);
+									break;
+								}
 
 							// 010
 							case 2:
@@ -97,8 +157,12 @@ namespace M68K {
 								if (Set)
 									throw new InvalidOperationException();
 
-								CurrentInstructionLength += (int)Size;
-								return Memory.Read(Size, PC + 2);
+								if (Size == OpSize.BYTE)
+									Size = OpSize.WORD;
+
+								AddressingOffset += (int)Size;
+								ulong Val = Memory.Read(Size, PC + 2);
+								return Val;
 
 							default:
 								throw new InvalidOperationException();
@@ -135,9 +199,17 @@ namespace M68K {
 			ushort Word4 = Memory.Read16(PC + sizeof(ushort) * 4);
 
 			uint Instr = (uint)((Word0 << 16) | Word1);
+			ulong Instr2 = ((ulong)Word0 << 64) | ((ulong)Word1 << 48) | ((ulong)Word2 << 32) | ((ulong)Word3 << 16) | Word4;
+
 			Opcode Opcode = MatchOpcode(Instr, out CurrentInstructionLength);
+			AddressingOffset = 0;
 
 #if DEBUG
+			/*Console.Write("                       ");
+			for (int i = 16 - 1; i >= 0; i--)
+				Console.Write("{0:X}", i);
+			Console.WriteLine();*/
+
 			Console.ForegroundColor = ConsoleColor.White;
 			Console.Write("0x{0:X8}: ", PC);
 			Console.ResetColor();
@@ -194,8 +266,18 @@ namespace M68K {
 					break;
 				case Opcode.EORItoCCR:
 					break;
-				case Opcode.ADDI:
-					break;
+
+				case Opcode.ADDI: {
+						ushort DstEAddr = Decode_EAddr(((ulong)Word0).GetBits(5, 0));
+						OpSize Size = Decode_Size(((ulong)Word0).GetBits(7, 6));
+
+						ulong Src = GetData(Size, MODE_IMMEDIATE);
+						ulong Dest = GetData(Size, DstEAddr);
+						SetData(Size, DstEAddr, Src + Dest);
+
+						break;
+					}
+
 				case Opcode.EORItoSR:
 					break;
 				case Opcode.EORI:
@@ -364,8 +446,43 @@ namespace M68K {
 					break;
 				case Opcode.ADDX:
 					break;
-				case Opcode.ADD_ADDA:
-					break;
+
+				case Opcode.ADD_ADDA: {
+						ushort EAddr = Decode_EAddr(Word0.GetBits(5, 0));
+						ushort OpMode = Word0.GetBits(7, 6);
+						OpSize Size = Decode_Size(OpMode);
+						ulong Register = Word0.GetBits(11, 9);
+						bool IsSource = !Word0.GetBit(8);
+
+						// ADDA part
+						ulong MODE_REGISTER = MODE_REGISTER_D;
+						if (OpMode == 0x3 || OpMode == 0x7) {
+							MODE_REGISTER = MODE_REGISTER_A;
+							IsSource = true;
+
+							if (OpMode == 0x3)
+								Size = OpSize.WORD;
+							else
+								Size = OpSize.LONG;
+						}
+
+						ulong Src, Dst;
+						ulong SetEAddr = MODE_REGISTER | Register;
+
+
+						if (IsSource) {
+							Src = GetData(Size, EAddr);
+							Dst = GetData(Size, MODE_REGISTER | Register);
+						} else {
+							Src = GetData(Size, MODE_REGISTER_D | Register);
+							Dst = GetData(Size, EAddr);
+							SetEAddr = EAddr;
+						}
+
+						SetData(Size, SetEAddr, Src + Dst);
+						break;
+					}
+
 				case Opcode.ASL_ASR_MEM_SHIFT:
 					break;
 				case Opcode.LSL_LSR_MEM_SHIFT:
@@ -402,7 +519,7 @@ namespace M68K {
 					break;
 			}
 
-			PC += CurrentInstructionLength;
+			PC += CurrentInstructionLength + AddressingOffset;
 		}
 	}
 }

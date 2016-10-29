@@ -12,3 +12,5 @@ void _start() {
 
 // Custom intrinsics
 #define __bullshit() __asm__(".byte 0b11111111, 0b11111111;")
+
+typedef unsigned char byte;

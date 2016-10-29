@@ -17,6 +17,17 @@ namespace M68K {
 	}
 
 	public partial class CPU {
+		public const ulong MODE_REGISTER_D = 0;
+		public const ulong MODE_REGISTER_A = 1 << 8;
+		public const ulong MODE_IMMEDIATE = (7 << 8) | 4;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static OpSize Decode_Size(ulong Val) {
+			if (Val == 0)
+				return OpSize.BYTE;
+			return (OpSize)(Val * 2);
+		}
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static ushort Decode_DestEAddr(ulong Value) {
 			return Decode_EAddr(Value.GetBits(2, 0), Value.GetBits(5, 3));
@@ -41,10 +52,15 @@ namespace M68K {
 		public virtual void Move(OpSize Size, ulong Instruction) {
 			ulong SrcData = GetData(Size, Decode_SrcEAddr(Instruction.GetBits(5, 0)));
 			SetData(Size, Decode_DestEAddr(Instruction.GetBits(11, 6)), SrcData);
+
+			CCR_N_Sign = Size.IsNegative(SrcData);
+			CCR_Z_Zero = SrcData == 0;
+			CCR_V_Overflow = CCR_C_Carry = false;
 		}
 
 		public virtual void Trap(int Num) {
 			TrapQueue.Enqueue(Num);
 		}
+		
 	}
 }
