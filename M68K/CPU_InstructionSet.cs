@@ -81,7 +81,7 @@ namespace M68K {
 					CreateDef("0110????????", Opcode.NOT),
 					CreateDef("011011??????", Opcode.MOVEtoSR),
 					CreateDef("100???000???", Opcode.EXT_EXTB),
-					CreateDef("100000001???", Opcode.LINK_LONG, 6),
+					CreateDef("100000001???", Opcode.LINK_LONG, 2),
 					CreateDef("100000??????", Opcode.NBCD),
 					CreateDef("100001000???", Opcode.SWAP),
 					CreateDef("100001001???", Opcode.BKPT),
@@ -95,7 +95,7 @@ namespace M68K {
 					CreateDef("110000??????", "0???0?0000000???", Opcode.DIVU_DIVUL_LONG, 4),
 					CreateDef("110001??????", "0???1?0000000???", Opcode.DIVS_DIVSL_LONG, 4),
 					CreateDef("11100100????", Opcode.TRAP),
-					CreateDef("111001010???", Opcode.LINK_WORD, 4),
+					CreateDef("111001010???", Opcode.LINK_WORD, 2),
 					CreateDef("111001011???", Opcode.UNLK),
 					CreateDef("11100110????", Opcode.MOVE_USP),
 					CreateDef("111001110000", Opcode.RESET),
@@ -198,13 +198,10 @@ namespace M68K {
 			return (byte)(((ushort)((Instruction >> 16) & 0xFFFF)).GetBits(15, 12) & 0xFF);
 		}
 
-		static Opcode MatchOpcode(uint Instruction, out int Sizeof) {
-			Sizeof = 2;
-
+		static Opcode MatchOpcode(uint Instruction) {
 			OpcodeDef[] Definitions = InstructionSet[GetLookupMaskForInstruction(Instruction)];
 			for (int i = 0; i < Definitions.Length; i++)
 				if (Definitions[i].Matches(Instruction)) {
-					Sizeof = Definitions[i].Higher.Sizeof;
 					return Definitions[i].Opcode;
 				}
 

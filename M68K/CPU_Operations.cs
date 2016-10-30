@@ -20,6 +20,8 @@ namespace M68K {
 		public const ulong MODE_REGISTER_D = 0;
 		public const ulong MODE_REGISTER_A = 1 << 8;
 		public const ulong MODE_IMMEDIATE = (7 << 8) | 4;
+		public const ulong MODE_ADDR16 = (7 << 8);
+		public const ulong MODE_ADDR32 = (7 << 8) | 1;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static OpSize Decode_Size(ulong Val) {
@@ -49,9 +51,20 @@ namespace M68K {
 			return (ushort)(((Mode & 0xFF) << 8) | (Reg & 0xFF));
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal ulong DecodeAddrData(OpSize Size, ulong Mode, ulong Addr) {
+			if (Mode == MODE_ADDR16 || Mode == MODE_ADDR32)
+				return Memory.Read(Size, (int)Addr);
+			return Addr;
+		}
+
+
 		public virtual void Move(OpSize Size, ulong Instruction) {
-			ulong SrcData = GetData(Size, Decode_SrcEAddr(Instruction.GetBits(5, 0)));
-			SetData(Size, Decode_DestEAddr(Instruction.GetBits(11, 6)), SrcData);
+			ulong SrcEAddr = Decode_SrcEAddr(Instruction.GetBits(5, 0));
+			ulong DstEAddr = Decode_DestEAddr(Instruction.GetBits(11, 6));
+
+			ulong SrcData = DecodeAddrData(Size, SrcEAddr, GetData(Size, SrcEAddr));
+			SetData(Size, DstEAddr, SrcData);
 
 			CCR_N_Sign = Size.IsNegative(SrcData);
 			CCR_Z_Zero = SrcData == 0;
@@ -61,6 +74,6 @@ namespace M68K {
 		public virtual void Trap(int Num) {
 			TrapQueue.Enqueue(Num);
 		}
-		
+
 	}
 }

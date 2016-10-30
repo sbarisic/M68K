@@ -1,7 +1,7 @@
 #pragma once
 
 void _start();
-void main();
+int main();
 
 void _start() {
 	main();

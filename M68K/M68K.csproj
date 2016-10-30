@@ -48,6 +48,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="MemoryBus.cs" />
     <Compile Include="MemoryMappedDevice.cs" />
+    <Compile Include="NamedIndexer.cs" />
     <Compile Include="Opcode.cs" />
     <Compile Include="BinaryPatterns.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

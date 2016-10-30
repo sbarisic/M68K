@@ -20,6 +20,8 @@ namespace Test {
 			Bus.Attach(0, ROM.FromFile("program.bin"));
 			Processor.Memory = Bus;
 
+			Processor.DA[CPU.SP] = 0xF00F; // setup stack pointer
+
 			while (true) {
 				Console.ForegroundColor = ConsoleColor.White;
 				Console.Write("(M68K)>> ");
