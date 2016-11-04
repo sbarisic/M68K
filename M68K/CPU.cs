@@ -253,32 +253,7 @@ namespace M68K {
 					throw new InvalidOperationException();
 				case Opcode.UNIMPLEMENTED:
 					throw new NotImplementedException();
-
-				case Opcode.ORItoCCR:
-					break;
-				case Opcode.ORItoSR:
-					break;
-				case Opcode.ORI:
-					break;
-				case Opcode.ANDItoCCR:
-					break;
-				case Opcode.ANDItoSR:
-					break;
-				case Opcode.ANDI:
-					break;
-				case Opcode.SUBI:
-					break;
-				case Opcode.RTM:
-					break;
-				case Opcode.CALLM:
-					break;
-				case Opcode.CMP2:
-					break;
-				case Opcode.CHK2:
-					break;
-				case Opcode.EORItoCCR:
-					break;
-
+					
 				case Opcode.ADDI: {
 						ushort DstEAddr = Decode_EAddr(((ulong)Word0).GetBits(5, 0));
 						OpSize Size = Decode_Size(((ulong)Word0).GetBits(7, 6));
@@ -289,70 +264,21 @@ namespace M68K {
 
 						break;
 					}
+					
+				case Opcode.MOVE_BYTE: {
+						Move(OpSize.BYTE, Word0);
+						break;
+					}
 
-				case Opcode.EORItoSR:
-					break;
-				case Opcode.EORI:
-					break;
-				case Opcode.CMPI:
-					break;
-				case Opcode.BTST:
-					break;
-				case Opcode.BCHG:
-					break;
-				case Opcode.BCLR:
-					break;
-				case Opcode.BSET:
-					break;
-				case Opcode.MOVES:
-					break;
-				case Opcode.CAS2:
-					break;
-				case Opcode.CAS:
-					break;
-				case Opcode.MOVEP:
-					break;
-				case Opcode.MOVE_BYTE:
-					Move(OpSize.BYTE, Word0);
-					break;
-				case Opcode.MOVEA_BYTE:
-					break;
-				case Opcode.MOVE_LONG:
-					Move(OpSize.LONG, Word0);
-					break;
-				case Opcode.MOVEA_LONG:
-					break;
-				case Opcode.MOVE_WORD:
-					Move(OpSize.WORD, Word0);
-					break;
-				case Opcode.MOVEA_WORD:
-					break;
-				case Opcode.MOVEfromSR:
-					break;
-				case Opcode.MOVEfromCCR:
-					break;
-				case Opcode.NEGX:
-					break;
-				case Opcode.CLR:
-					break;
-				case Opcode.MOVEtoCCR:
-					break;
-				case Opcode.NEG:
-					break;
-				case Opcode.NOT:
-					break;
-				case Opcode.MOVEtoSR:
-					break;
-				case Opcode.EXT_EXTB:
-					break;
-				case Opcode.LINK_LONG:
-					break;
-				case Opcode.NBCD:
-					break;
-				case Opcode.SWAP:
-					break;
-				case Opcode.BKPT:
-					break;
+				case Opcode.MOVE_WORD: {
+						Move(OpSize.WORD, Word0);
+						break;
+					}
+
+				case Opcode.MOVE_LONG: {
+						Move(OpSize.LONG, Word0);
+						break;
+					}
 
 				case Opcode.PEA: {
 						ushort EAddr = Decode_EAddr(((ulong)Word0).GetBits(5, 0));
@@ -364,29 +290,10 @@ namespace M68K {
 						break;
 					}
 
-				case Opcode.BGND:
-					break;
-				case Opcode.ILLEGAL:
-					break;
-				case Opcode.TAS:
-					break;
-				case Opcode.TST:
-					break;
-				case Opcode.DIVU_DIVUL_LONG:
-					break;
-				case Opcode.DIVS_DIVSL_LONG:
-					break;
-
-				case Opcode.TRAPcc:
-					break;
-
-				case Opcode.TRAPV:
-					break;
-
 				case Opcode.TRAP: {
 						Trap(Word0.GetBits(3, 0));
+						break;
 					}
-					break;
 
 				case Opcode.UNLK: {
 						ulong Register = Word0.GetBits(2, 0);
@@ -409,27 +316,10 @@ namespace M68K {
 
 						break;
 					}
-
-				case Opcode.MOVE_USP:
-					break;
-				case Opcode.RESET:
-					break;
-
+					
 				case Opcode.NOP: {
 						break;
 					}
-
-				case Opcode.STOP:
-					break;
-				case Opcode.RTE:
-					break;
-				case Opcode.RTD:
-					break;
-
-				case Opcode.RTR:
-					break;
-				case Opcode.MOVEC:
-					break;
 
 				case Opcode.JMP:
 				case Opcode.JSR: {
@@ -453,57 +343,13 @@ namespace M68K {
 						IncPC = false;
 						break;
 					}
-
-				case Opcode.MOVEM:
-					break;
-				case Opcode.LEA:
-					break;
-				case Opcode.CHK:
-					break;
-
-				case Opcode.SUBQ:
-					break;
-				case Opcode.DBcc:
-					break;
-				case Opcode.Scc:
-					break;
-				case Opcode.BRA:
-					break;
-				case Opcode.BSR:
-					break;
-				case Opcode.Bcc:
-					break;
-				case Opcode.MOVEQ:
-					break;
-				case Opcode.DIVU_DIVUL_WORD:
-					break;
-				case Opcode.SBCD:
-					break;
-				case Opcode.PACK:
-					break;
-				case Opcode.UNPK:
-					break;
-				case Opcode.DIVS_DIVSL_WORD:
-					break;
-				case Opcode.OR:
-					break;
-				case Opcode.SUBX:
-					break;
-				case Opcode.SUB_SUBA:
-					break;
-				case Opcode.CMPM:
-					break;
-				case Opcode.CMP_CMPA_EOR:
-					break;
-				case Opcode.ABCD:
-					break;
-
+				
 				case Opcode.MULU_WORD:
 				case Opcode.MULU_LONG:
 				case Opcode.MULS_WORD:
 				case Opcode.MULS_LONG: {
 						OpSize Size = (Opcode == Opcode.MULS_WORD || Opcode == Opcode.MULU_WORD) ? OpSize.WORD : OpSize.LONG;
-						
+
 						ulong SrcEAddr = Decode_EAddr(Word0.GetBits(5, 0));
 						ulong DstEAddr = Size == OpSize.LONG ?
 							(MODE_REGISTER_D | Word1.GetBits(14, 12)) : (MODE_REGISTER_D | Word0.GetBits(11, 9));
@@ -526,11 +372,6 @@ namespace M68K {
 						break;
 					}
 
-				case Opcode.EXG:
-					break;
-				case Opcode.AND:
-					break;
-
 				case Opcode.ADDQ: {
 						ushort EAddr = Decode_EAddr(Word0.GetBits(5, 0));
 						OpSize Size = Decode_Size(Word0.GetBits(7, 6));
@@ -543,9 +384,6 @@ namespace M68K {
 
 						break;
 					}
-
-				case Opcode.ADDX:
-					break;
 
 				case Opcode.ADD_ADDA: {
 						ushort EAddr = Decode_EAddr(Word0.GetBits(5, 0));
@@ -583,40 +421,8 @@ namespace M68K {
 						break;
 					}
 
-				case Opcode.ASL_ASR_MEM_SHIFT:
-					break;
-				case Opcode.LSL_LSR_MEM_SHIFT:
-					break;
-				case Opcode.ROXL_ROXR_MEM_ROTATE:
-					break;
-				case Opcode.ROL_ROR_MEM_ROTATE:
-					break;
-				case Opcode.BFTST:
-					break;
-				case Opcode.BFEXTU:
-					break;
-				case Opcode.BFCHG:
-					break;
-				case Opcode.BFEXTS:
-					break;
-				case Opcode.BFCLR:
-					break;
-				case Opcode.BFFFO:
-					break;
-				case Opcode.BFSET:
-					break;
-				case Opcode.BFINS:
-					break;
-				case Opcode.ASL_ASR_REG_SHIFT:
-					break;
-				case Opcode.LSL_LSR_REG_SHIFT:
-					break;
-				case Opcode.ROXL_ROXR_REG_ROTATE:
-					break;
-				case Opcode.ROL_ROR_REG_ROTATE:
-					break;
 				default:
-					break;
+					throw new NotImplementedException();
 			}
 
 			if (IncPC)
